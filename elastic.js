@@ -2,7 +2,7 @@ var winston = require('winston');
 var request = require("http").request;
 var logger = new winston.Logger();
 var async = require("async");
-var elasticHost = 'localhost';
+var elasticHost = '54.85.208.63';
 var elasticPort = '9200';
 
 var Elastic = function() {
@@ -26,7 +26,7 @@ var Elastic = function() {
     });
     post_req.write(task.data);
     post_req.end(callback);
-  }, 10);
+  }, 40);
 
 }
 
