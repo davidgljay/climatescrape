@@ -9,7 +9,11 @@
   "author": "David Jay",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.12.4"
+    "express": "^4.12.4",
+    "htmlstrip-native": "^0.1.1",
+    "simplecrawler":"^0.5.2",
+    "unfluff":"^0.11.0",
+    "async":"1.2.1"
   },
   "devDependencies": {
     "grunt": "^0.4.5"
