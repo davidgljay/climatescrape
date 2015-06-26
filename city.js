@@ -37,14 +37,20 @@ City.prototype.crawl = function(callback) {
 			var cleanResponse = unfluff(responseBuffer.toString('utf-8'),'en');
 			var post_data = {
 				title: cleanResponse.title,
-				body: cleanResponse.body,
+				body: cleanResponse,
 				city_code: this.code,
 				url: queueItem.url,
 				city_name: this.name,
-				fetched_on: new Date().getTime()
+				fetched_on: new Date().getTime(),
+				hash: queueItem.url.hashCode()
 			}
-			elastic.post('/cities/' + this.code ,JSON.stringify(post_data));
-			logger.info('Fetched: ' + queueItem.url);
+			elastic.exists(queueItem.url)
+				.then(function(exists) {
+					if (!exists) {
+						logger.info("New page found, fetching:" + queueItem.url);
+						elastic.post('/cities/' + this.code ,JSON.stringify(post_data))
+					}
+				});
 		}
 	},
 	function(queueItem) {

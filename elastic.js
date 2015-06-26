@@ -1,9 +1,12 @@
-var winston = require('winston');
-var request = require("http").request;
-var logger = new winston.Logger();
-var async = require("async");
-var elasticHost = '54.85.208.63';
-var elasticPort = '9200';
+var Deferred = require("promised-io/promise").Deferred,
+winston = require('winston'),
+request = require("http").request,
+logger = new winston.Logger(),
+async = require("async"),
+elasticHost = '54.85.208.63',
+elasticPort = '9200';
+
+//TODO: create custom mappings for elasticsearch so that we can search by url effectively.
 
 var Elastic = function() {
 
@@ -19,14 +22,18 @@ var Elastic = function() {
             'Content-Length': task.data.length
         }
     };
-    var post_req = request(post_options, function(res) {});
+    var post_req = request(post_options, function(res) {
+          res.on('error', function(err) {
+            logger.error("Error on exists request:" + err)
+          });
+    });
     post_req.write(task.data);
     post_req.end(callback);
   }, 40);
-
 }
 
 Elastic.prototype.post = function(path, data) {
+  logger.info('Posting:' + path);
   var task = {
     path:path,
     data:data
@@ -39,6 +46,40 @@ Elastic.prototype.post = function(path, data) {
     }
   }
   this.queue.push(task, callback);
+}
+
+Elastic.prototype.exists = function(url) {
+  var deferred = new Deferred();
+  var post_options = {
+      host: elasticHost,
+      port: elasticPort,
+      path: '/cities/_search?q=hash:'+encodeURIComponent(url.hashCode()),
+      method: 'GET'
+  };
+  var post_req = request(post_options, function(res) {
+    var body=''
+    res.on('data', function (chunk) {
+      body += chunk;
+    });
+    res.on('error', function(err) {
+      logger.error("Error on exists request:" + err)
+    });
+    res.on('end', function() {
+      if (res.statusCode==200){
+        var result = JSON.parse(body);
+        if (result.hits.total>0) {
+          deferred.resolve(true);
+        } else {
+          deferred.resolve(false);
+        }
+      } else {
+        logger.error('Exists call returned non-200 stattus:' + res.statusCode);
+        deferred.resolve(false);
+      }
+    })
+  }).end();
+
+  return deferred.promise;
 }
 
 module.exports = Elastic;
