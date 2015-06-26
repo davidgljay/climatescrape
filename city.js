@@ -3,23 +3,26 @@ var winston = require('winston');
 var logger = new winston.Logger();
 var Crawler = require("simplecrawler");
 var unfluff = require('unfluff');
-var Elastic = require("../elastic");
+var Elastic = require("./elastic");
 var elastic = new Elastic();
 logger.add(winston.transports.Console);
 
-var City = function(name, code, url) {
+var City = function(name, url) {
 	this.name = name;
-	this.code = code;
-	this.url = url;
+	if (url.substring(0,6)=="http://") {
+		this.url = url;
+	} else {
+		this.url = "http://" + url; 
+	}
+	//Extracing city code form url. In principal this could create conflicts, but I think I'm ok...
+	this.code = url.split('.').reverse()[1];
 };
 
 var starttime = new Date().getTime();
 
-//TODO: Write integration with db (firebase! Yes!) to get list of city URLs
-
-City.prototype.crawl = function() {
+City.prototype.crawl = function(callback) {
 	var deferred = new Deferred();
-	var citycrawler = Crawler.crawl(this.url)
+	var citycrawler = Crawler.crawl(this.url);
 	citycrawler.interval = 100;
 	citycrawler.maxResourceSize = 1000000;
 	citycrawler.scanSubdomains = true;
@@ -37,9 +40,11 @@ City.prototype.crawl = function() {
 				body: cleanResponse.body,
 				city_code: this.code,
 				url: queueItem.url,
-				city_name: this.name
+				city_name: this.name,
+				fetched_on: new Date().getTime()
 			}
 			elastic.post('/cities/' + this.code ,JSON.stringify(post_data));
+			logger.info('Fetched: ' + queueItem.url);
 		}
 	},
 	function(queueItem) {
@@ -61,15 +66,16 @@ City.prototype.crawl = function() {
 	})
 	citycrawler.on("complete",function() {
 		logger.info("Search complete, total time="+ (new Date().getTime() - starttime));
-		process.exit();
+		callback();
 		deferred.resolve();
 	})
+	logger.info('Starting crawl for ' + this.name);
 	citycrawler.start();
 	return deferred.promise;
 };
 
-var city = new City('New York City', 'nyc','http://www1.nyc.gov');
-city.crawl();
+// var city = new City('New York City', 'nyc','http://www1.nyc.gov');
+// city.crawl();
 
 
 

@@ -19,11 +19,7 @@ var Elastic = function() {
             'Content-Length': task.data.length
         }
     };
-    var post_req = request(post_options, function(res) {
-          res.on('data', function (chunk) {
-              console.log('Response: ' + chunk);
-          });
-    });
+    var post_req = request(post_options, function(res) {});
     post_req.write(task.data);
     post_req.end(callback);
   }, 40);
@@ -43,13 +39,6 @@ Elastic.prototype.post = function(path, data) {
     }
   }
   this.queue.push(task, callback);
-
-  // An object of options to indicate where to post to
-
-  //These are slwoing down, possibly b/c there are too many outbound connections.
-  //How to throttle the number of simultaneous requests?
-  // Set up the request
-
 }
 
 module.exports = Elastic;
