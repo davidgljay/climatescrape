@@ -21,6 +21,7 @@ var City = function(name, url) {
 var starttime = new Date().getTime();
 
 City.prototype.crawl = function(callback) {
+	var self=this;
 	var deferred = new Deferred();
 	var citycrawler = Crawler.crawl(this.url);
 	citycrawler.interval = 100;
@@ -38,12 +39,12 @@ City.prototype.crawl = function(callback) {
 			var post_data = {
 				title: cleanResponse.title,
 				body: cleanResponse,
-				city_code: this.code,
+				city_code: self.code,
 				url: queueItem.url,
-				city_name: this.name,
+				city_name: self.name,
 				fetched_on: new Date().getTime(),
 				hash: queueItem.url.hashCode()
-			}
+			};
 			elastic.exists(queueItem.url)
 				.then(function(exists) {
 					if (!exists) {
