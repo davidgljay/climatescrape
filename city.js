@@ -49,7 +49,7 @@ City.prototype.crawl = function(callback) {
 				.then(function(exists) {
 					if (!exists) {
 						logger.info("New page found, fetching:" + queueItem.url);
-						elastic.post('/cities/' + this.code ,JSON.stringify(post_data))
+						elastic.post('/cities/' + self.code ,JSON.stringify(post_data))
 					}
 				});
 		}
