@@ -6,29 +6,29 @@ var Elastic = require("./elastic");
 var elastic = new Elastic();
 logger.add(winston.transports.Console);
 
-var City = function(name, url) {
+var Item = function(name, url,type) {
 	this.name = name;
+	this.type = type;
 	if (url.substring(0,6)=="http://") {
 		this.url = url;
 	} else {
 		this.url = "http://" + url; 
 	}
-	//Extracing city code form url. In principal this could create conflicts, but I think I'm ok...
+	//Extracing item code form url. In principal this could create conflicts, but I think I'm ok...
 	this.code = url.split('.').reverse()[1];
 };
 
 var starttime = new Date().getTime();
 
-City.prototype.crawl = function(callback) {
+Item.prototype.crawl = function(callback) {
 	var self=this;
 	var deferred = new Deferred();
 	var Crawler = require("simplecrawler");
-	var citycrawler = new Crawler(this.url); 
-	citycrawler.interval = 100;
-	citycrawler.maxResourceSize = 1000000;
-	citycrawler.scanSubdomains = true;
-	citycrawler.maxDepth=1;
-	citycrawler.on("fetchcomplete", function(queueItem,responseBuffer, response){
+	var itemcrawler = new Crawler(this.url); 
+	itemcrawler.interval = 100;
+	itemcrawler.maxResourceSize = 1000000;
+	itemcrawler.scanSubdomains = true;
+	itemcrawler.on("fetchcomplete", function(queueItem,responseBuffer, response){
 		var strip_options = {
 		    include_script : false,
 		    include_style : false,
@@ -40,9 +40,9 @@ City.prototype.crawl = function(callback) {
 			var post_data = {
 				title: cleanResponse.title,
 				body: cleanResponse,
-				city_code: self.code,
+				item_code: self.code,
 				url: queueItem.url,
-				city_name: self.name,
+				item_name: self.name,
 				fetched_on: new Date().getTime(),
 				hash: queueItem.url.hashCode()
 			};
@@ -50,7 +50,7 @@ City.prototype.crawl = function(callback) {
 				.then(function(exists) {
 					if (!exists) {
 						logger.info("New page found, fetching:" + queueItem.url);
-						elastic.post('/cities/' + self.code ,JSON.stringify(post_data))
+						elastic.post('/' + item + '/' + self.code ,JSON.stringify(post_data))
 					}
 				});
 		}
@@ -58,7 +58,7 @@ City.prototype.crawl = function(callback) {
 	function(queueItem) {
 		logger.error("Error fetching: " + queueItem.url);
 	});
-	citycrawler.addFetchCondition(function(parsedUrl) {
+	itemcrawler.addFetchCondition(function(parsedUrl) {
 		return (
 			!parsedUrl.path.match(/\.js$/i) && 
 			!parsedUrl.path.match(/\.css$/i) &&
@@ -72,20 +72,20 @@ City.prototype.crawl = function(callback) {
 			!parsedUrl.path.match(/\.ico$/i)
 			)
 	})
-	citycrawler.on("complete",function() {
+	itemcrawler.on("complete",function() {
 		logger.info("Search complete, total time="+ (new Date().getTime() - starttime));
 		callback();
 		deferred.resolve();
-		citycrawler.stop();
+		itemcrawler.stop();
 	})
 	logger.info('Starting crawl for ' + this.name);
-	citycrawler.start();
+	itemcrawler.start();
 	return deferred.promise;
 };
 
-// var city = new City('New York City', 'nyc','http://www1.nyc.gov');
-// city.crawl();
+// var item = new item('New York item', 'nyc','http://www1.nyc.gov');
+// item.crawl();
 
 
 
-module.exports=City;
+module.exports=Item;
