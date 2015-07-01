@@ -1,7 +1,6 @@
 var Deferred = require("promised-io/promise").Deferred;
 var winston = require('winston');
 var logger = new winston.Logger();
-var Crawler = require("simplecrawler");
 var unfluff = require('unfluff');
 var Elastic = require("./elastic");
 var elastic = new Elastic();
@@ -23,10 +22,12 @@ var starttime = new Date().getTime();
 City.prototype.crawl = function(callback) {
 	var self=this;
 	var deferred = new Deferred();
-	var citycrawler = Crawler.crawl(this.url);
+	var Crawler = require("simplecrawler");
+	var citycrawler = new Crawler(this.url); 
 	citycrawler.interval = 100;
 	citycrawler.maxResourceSize = 1000000;
 	citycrawler.scanSubdomains = true;
+	citycrawler.maxDepth=1;
 	citycrawler.on("fetchcomplete", function(queueItem,responseBuffer, response){
 		var strip_options = {
 		    include_script : false,
@@ -75,6 +76,7 @@ City.prototype.crawl = function(callback) {
 		logger.info("Search complete, total time="+ (new Date().getTime() - starttime));
 		callback();
 		deferred.resolve();
+		citycrawler.stop();
 	})
 	logger.info('Starting crawl for ' + this.name);
 	citycrawler.start();
