@@ -24,11 +24,11 @@ Item.prototype.crawl = function(callback) {
 	var self=this;
 	var deferred = new Deferred();
 	var Crawler = require("simplecrawler");
-	var itemcrawler = new Crawler(this.url); 
-	itemcrawler.interval = 100;
-	itemcrawler.maxResourceSize = 1000000;
-	itemcrawler.scanSubdomains = true;
-	itemcrawler.on("fetchcomplete", function(queueItem,responseBuffer, response){
+	var crawlerProcess = new Crawler.crawl(self.url);
+	crawlerProcess.interval = 100;
+	crawlerProcess.maxResourceSize = 1000000;
+	crawlerProcess.scanSubdomains = true;
+	crawlerProcess.on("fetchcomplete", function(queueItem,responseBuffer, response){
 		var strip_options = {
 		    include_script : false,
 		    include_style : false,
@@ -44,13 +44,14 @@ Item.prototype.crawl = function(callback) {
 				url: queueItem.url,
 				item_name: self.name,
 				fetched_on: new Date().getTime(),
-				hash: queueItem.url.hashCode()
+				hash: queueItem.url.hashCode(),
+				type:self.type
 			};
 			elastic.exists(queueItem.url)
 				.then(function(exists) {
 					if (!exists) {
 						logger.info("New page found, fetching:" + queueItem.url);
-						elastic.post('/' + item + '/' + self.code ,JSON.stringify(post_data))
+						elastic.post('/' + self.type + '/' + self.code ,JSON.stringify(post_data))
 					}
 				});
 		}
@@ -58,7 +59,7 @@ Item.prototype.crawl = function(callback) {
 	function(queueItem) {
 		logger.error("Error fetching: " + queueItem.url);
 	});
-	itemcrawler.addFetchCondition(function(parsedUrl) {
+	crawlerProcess.addFetchCondition(function(parsedUrl) {
 		return (
 			!parsedUrl.path.match(/\.js$/i) && 
 			!parsedUrl.path.match(/\.css$/i) &&
@@ -72,15 +73,18 @@ Item.prototype.crawl = function(callback) {
 			!parsedUrl.path.match(/\.ico$/i)
 			)
 	})
-	itemcrawler.on("complete",function() {
+	crawlerProcess.on("complete",function() {
 		logger.info("Search complete, total time="+ (new Date().getTime() - starttime));
+		// deferred.resolve();
+		// crawlerProcess.queue.freeze();
+		// crawlerProcess.wait();
+		// crawlerProcess.stop();
+		// crawlerProcess.on("complete",function(){});
 		callback();
-		deferred.resolve();
-		itemcrawler.stop();
 	})
-	logger.info('Starting crawl for ' + this.name);
-	itemcrawler.start();
-	return deferred.promise;
+	logger.info('Starting crawl for ' + self.name + " " + self.url);
+	crawlerProcess.start();
+	// return deferred.promise;
 };
 
 // var item = new item('New York item', 'nyc','http://www1.nyc.gov');
