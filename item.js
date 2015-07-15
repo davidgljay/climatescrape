@@ -35,7 +35,7 @@ Item.prototype.crawl = function(callback) {
 		    compact_whitespace : true,
 		  include_attributes : { 'alt': true }
 		};
-		if (queueItem.stateData.contentType.substring(0,9)=="text/html") {
+		if (queueItem.stateData.contentType && queueItem.stateData.contentType.substring(0,9)=="text/html") {
 			var cleanResponse = unfluff(responseBuffer.toString('utf-8'),'en');
 			var post_data = {
 				title: cleanResponse.title,
