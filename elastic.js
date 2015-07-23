@@ -48,7 +48,7 @@ Elastic.prototype.post = function(path, data) {
   this.queue.push(task, callback);
 }
 
-Elastic.prototype.check(url) {
+Elastic.prototype.check = function (url) {
   var deferred = new Deferred();
   var post_options = {
     host: elasticHost,
@@ -73,6 +73,7 @@ Elastic.prototype.check(url) {
       }
     })
   }).end();
+  return deferred.promise;
 }
 
 Elastic.prototype.exists = function(url) {
@@ -101,7 +102,7 @@ Elastic.prototype.exists = function(url) {
         }
       } else {
         logger.error('Exists call returned non-200 stattus:' + res.statusCode);
-        deferred.resolve(false);
+        deferred.reject(res.statusCode);
       }
     })
   }).end();

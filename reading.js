@@ -12,20 +12,23 @@ var elastic = new Elastic();
 logger.add(winston.transports.Console);
 
 var Reading = function(title, body,tags,url,item_code,item_name,crawled_on,created_on,type) {
-	this.title=title;
-	this.body=body;
-	this.tags=tags;
-	this.url=url;
-	this.item_code=item_code;
-	this.item_name;
-	this.crawled_on=crawled_on;
-	this.created_on=created_on;
-	this.type=type;
-	//Make a unique id from the body fo the page and that page's url. This will be used to detect whether there are duplicate pages.
-	this.id = (url + body).replace("\r","").replace("\n","").hashCode();
+	var self=this;
+	self.title=title;
+	self.body=body;
+	self.tags=tags;
+	self.url=url;
+	self.item_code=item_code;
+	self.item_name=item_name;
+	self.crawled_on=crawled_on;
+	self.created_on=created_on;
+	self.type=type;
+	//Make a unique id from the body fo the page and that page's url. self will be used to detect whether there are duplicate pages.
+	// self.id = (url + body).replace("\r","").replace("\n","").hashCode();
 };
 
+
 Reading.prototype.exists = function() {
+	var self=this;
 	return elastic.check('/' + self.type + '/' + self.code + '/' + self.id).then(
 		function(body) {
 			var result = JSON.parse(body);
@@ -36,7 +39,7 @@ Reading.prototype.exists = function() {
 	          return false;
 	        }
  
-		},function(errCode) {
+		},function(err) {
 			throw err;
 		})
 }
@@ -46,6 +49,7 @@ Reading.prototype.saveElastic = function() {
 	self.exists().then(function(exists) {
 		if (!exists) {
 			logger.info("Found new page, saving:" + self.url);
+			logger.info(JSON.stringify(self))
 			elastic.post('/' + self.type + '/' + self.code + '/' + self.id , JSON.stringify(self));
 		} else {
 			logger.info("Page already exists in elastic DB:" + self.url);
@@ -54,5 +58,14 @@ Reading.prototype.saveElastic = function() {
 };
 
 Reading.prototype.saveSql = function() {
+	var self=this;
+	var query = "INSERT INTO " + process.env.TABLE_NAME + ".READINGS (title, body, tags, url, item_code, item_name, crawled_on, created_on, type) " + 
+	"VALUES ('" + self.title + "', '" + self.body + "', '" + self.tags + "', '" + self.url + "', '" + self.item_code + "', '" + self.item_name + "', '" + 
+	self.crawled_on + "', '" + self.created_on + "', '" + self.created_on + "', '" + self.type + "');";
+	console.log("Query: " + query);
+	//SQL.post(query);u
+
 	//TODO: Implement function to save to SQL;
 }
+
+module.exports=Reading;
