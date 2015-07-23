@@ -48,6 +48,33 @@ Elastic.prototype.post = function(path, data) {
   this.queue.push(task, callback);
 }
 
+Elastic.prototype.check(url) {
+  var deferred = new Deferred();
+  var post_options = {
+    host: elasticHost,
+    port: elasticPort,
+    path: url,
+    method: 'GET'
+  };
+  var post_req = request(post_options, function(res) {
+    var body=''
+    res.on('data', function (chunk) {
+      body += chunk;
+    });
+    res.on('error', function(err) {
+      logger.error("Error on exists request:" + err)
+    });
+    res.on('end', function() {
+      if (res.statusCode==200){
+        deferred.resolve(body);
+      } else {
+        logger.error('Check call returned non-200 stattus:' + res.statusCode);
+        deferred.reject(res.statusCode);
+      }
+    })
+  }).end();
+}
+
 Elastic.prototype.exists = function(url) {
   var deferred = new Deferred();
   var post_options = {

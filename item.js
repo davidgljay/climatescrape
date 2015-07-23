@@ -37,23 +37,26 @@ Item.prototype.crawl = function(callback) {
 		};
 		if (queueItem.stateData.contentType && queueItem.stateData.contentType.substring(0,9)=="text/html") {
 			var cleanResponse = unfluff(responseBuffer.toString('utf-8'),'en');
-			var post_data = {
-				title: cleanResponse.title,
-				body: cleanResponse,
-				item_code: self.code,
-				url: queueItem.url,
-				item_name: self.name,
-				fetched_on: new Date().getTime(),
-				hash: queueItem.url.hashCode(),
-				type:self.type
-			};
-			elastic.exists(queueItem.url)
-				.then(function(exists) {
-					if (!exists) {
-						logger.info("New page found, fetching:" + queueItem.url);
-						elastic.post('/' + self.type + '/' + self.code ,JSON.stringify(post_data))
-					}
-				});
+			var reading = new Reading(cleanResponse.title, cleanResponse.text, cleanResponse.tags, self.url, self.code, self.name, new Date.getTime(), new Date.getTime(), self.type);
+			reading.saveElastic();
+			
+			// var post_data = {
+			// 	title: cleanResponse.title,
+			// 	body: cleanResponse,
+			// 	item_code: self.code,
+			// 	url: queueItem.url,
+			// 	item_name: self.name,
+			// 	fetched_on: new Date().getTime(),
+			// 	hash: queueItem.url.hashCode(),
+			// 	type:self.type
+			// };
+			// elastic.exists(queueItem.url)
+			// 	.then(function(exists) {
+			// 		if (!exists) {
+			// 			logger.info("New page found, fetching:" + queueItem.url);
+			// 			elastic.post('/' + self.type + '/' + self.code ,JSON.stringify(post_data))
+			// 		}
+			// 	});
 		}
 	},
 	function(queueItem) {
