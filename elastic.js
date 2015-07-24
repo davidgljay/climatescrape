@@ -50,6 +50,7 @@ Elastic.prototype.post = function(path, data) {
 
 Elastic.prototype.check = function (url) {
   var deferred = new Deferred();
+  console.log("Checking: " + url);
   var post_options = {
     host: elasticHost,
     port: elasticPort,
@@ -65,49 +66,49 @@ Elastic.prototype.check = function (url) {
       logger.error("Error on exists request:" + err)
     });
     res.on('end', function() {
-      if (res.statusCode==200){
+      if (res.statusCode==200 || res.statusCode == 404){
         deferred.resolve(body);
       } else {
-        logger.error('Check call returned non-200 stattus:' + res.statusCode);
-        deferred.reject(res.statusCode);
+        logger.error('Check call returned status that is neither 200 nor 404:' + res.statusCode);
+        deferred.reject(res.statusCode + ":" + res.body);
       }
     })
   }).end();
   return deferred.promise;
 }
 
-Elastic.prototype.exists = function(url) {
-  var deferred = new Deferred();
-  var post_options = {
-      host: elasticHost,
-      port: elasticPort,
-      path: '/cities/_search?q=hash:'+encodeURIComponent(url.hashCode()),
-      method: 'GET'
-  };
-  var post_req = request(post_options, function(res) {
-    var body=''
-    res.on('data', function (chunk) {
-      body += chunk;
-    });
-    res.on('error', function(err) {
-      logger.error("Error on exists request:" + err)
-    });
-    res.on('end', function() {
-      if (res.statusCode==200){
-        var result = JSON.parse(body);
-        if (result.hits.total>0) {
-          deferred.resolve(true);
-        } else {
-          deferred.resolve(false);
-        }
-      } else {
-        logger.error('Exists call returned non-200 stattus:' + res.statusCode);
-        deferred.reject(res.statusCode);
-      }
-    })
-  }).end();
+// Elastic.prototype.exists = function(url) {
+//   var deferred = new Deferred();
+//   var post_options = {
+//       host: elasticHost,
+//       port: elasticPort,
+//       path: '/cities/_search?q=hash:'+encodeURIComponent(url.hashCode()),
+//       method: 'GET'
+//   };
+//   var post_req = request(post_options, function(res) {
+//     var body=''
+//     res.on('data', function (chunk) {
+//       body += chunk;
+//     });
+//     res.on('error', function(err) {
+//       logger.error("Error on exists request:" + err)
+//     });
+//     res.on('end', function() {
+//       if (res.statusCode==200){
+//         var result = JSON.parse(body);
+//         if (result.hits.total>0) {
+//           deferred.resolve(true);
+//         } else {
+//           deferred.resolve(false);
+//         }
+//       } else {
+//         logger.error('Exists call returned non-200 stattus:' + res.statusCode);
+//         deferred.reject(res.statusCode);
+//       }
+//     })
+//   }).end();
 
-  return deferred.promise;
-}
+//   return deferred.promise;
+// }
 
 module.exports = Elastic;

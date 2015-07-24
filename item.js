@@ -1,9 +1,11 @@
-var Deferred = require("promised-io/promise").Deferred;
-var winston = require('winston');
-var logger = new winston.Logger();
-var unfluff = require('unfluff');
-var Elastic = require("./elastic");
-var elastic = new Elastic();
+var Deferred = require("promised-io/promise").Deferred,
+winston = require('winston'),
+unfluff = require('unfluff'),
+Elastic = require("./elastic"),
+Reading = require("./reading");
+
+var logger = new winston.Logger(),
+elastic = new Elastic();
 logger.add(winston.transports.Console);
 
 var Item = function(name, url,type) {
@@ -37,7 +39,8 @@ Item.prototype.crawl = function(callback) {
 		};
 		if (queueItem.stateData.contentType && queueItem.stateData.contentType.substring(0,9)=="text/html") {
 			var cleanResponse = unfluff(responseBuffer.toString('utf-8'),'en');
-			var reading = new Reading(cleanResponse.title, cleanResponse.text, cleanResponse.tags, self.url, self.code, self.name, new Date.getTime(), new Date.getTime(), self.type);
+			var reading = new Reading(cleanResponse.title, cleanResponse.text.replace("\n"," "), 
+				cleanResponse.tags, queueItem.url, self.code, self.name, Date.now(), Date.now(), self.type);
 			reading.saveElastic();
 			
 			// var post_data = {
