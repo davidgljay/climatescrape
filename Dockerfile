@@ -9,5 +9,6 @@ ENV ELASTIC_HOST = '54.85.208.63'
 ENV ELASTIC_PORT = '9200'
 ENV SQL_HOST = ''
 ENV SQL_PORT = ''
+ENV FIREBASE_URL = 'https://boiling-torch-581.firebaseIO.com/'
 CMD node task
 

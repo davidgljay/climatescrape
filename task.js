@@ -2,13 +2,13 @@
 var express = require('express'),
 app = express(), 
 path = require('path'),
-Item = require('./item'),
+Item = require('./models/item'),
 Firebase = require('firebase'),
 async = require('async'),
 helper = require('./helper'),
 winston = require('winston'),
 logger = new winston.Logger(),
-db = new Firebase('https://boiling-torch-581.firebaseIO.com/').ref();
+db = new Firebase(process.env.FIREBASE_URL).ref();
 
 db.once('value', function(data) {
 	var items = [];
