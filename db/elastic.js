@@ -2,19 +2,18 @@ var Deferred = require("promised-io/promise").Deferred,
 winston = require('winston'),
 request = require("http").request,
 logger = new winston.Logger(),
-async = require("async"),
-elasticHost = '54.85.208.63',
-elasticPort = '9200';
+async = require("async");
 
-//TODO: create custom mappings for elasticsearch so that we can search by url effectively.
+//Todo: Implement filters in elasticsearch
+//TODO: move elastic host and port to environment variables.
 
 var Elastic = function() {
 
   this.queue = async.queue(function (task, callback) {
       
     var post_options = {
-        host: elasticHost,
-        port: elasticPort,
+        host: process.env.ELASTIC_HOST,
+        port: process.env.ELASTIC_PORT,
         path: task.path,
         method: 'POST',
         headers: {
@@ -52,8 +51,8 @@ Elastic.prototype.check = function (url) {
   var deferred = new Deferred();
   console.log("Checking: " + url);
   var post_options = {
-    host: elasticHost,
-    port: elasticPort,
+    host: process.env.ELASTIC_HOST,
+    port: process.env.ELASTIC_PORT,
     path: url,
     method: 'GET'
   };
@@ -76,39 +75,5 @@ Elastic.prototype.check = function (url) {
   }).end();
   return deferred.promise;
 }
-
-// Elastic.prototype.exists = function(url) {
-//   var deferred = new Deferred();
-//   var post_options = {
-//       host: elasticHost,
-//       port: elasticPort,
-//       path: '/cities/_search?q=hash:'+encodeURIComponent(url.hashCode()),
-//       method: 'GET'
-//   };
-//   var post_req = request(post_options, function(res) {
-//     var body=''
-//     res.on('data', function (chunk) {
-//       body += chunk;
-//     });
-//     res.on('error', function(err) {
-//       logger.error("Error on exists request:" + err)
-//     });
-//     res.on('end', function() {
-//       if (res.statusCode==200){
-//         var result = JSON.parse(body);
-//         if (result.hits.total>0) {
-//           deferred.resolve(true);
-//         } else {
-//           deferred.resolve(false);
-//         }
-//       } else {
-//         logger.error('Exists call returned non-200 stattus:' + res.statusCode);
-//         deferred.reject(res.statusCode);
-//       }
-//     })
-//   }).end();
-
-//   return deferred.promise;
-// }
 
 module.exports = Elastic;

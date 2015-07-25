@@ -1,7 +1,7 @@
 var Deferred = require("promised-io/promise").Deferred,
 winston = require('winston'),
 unfluff = require('unfluff'),
-Elastic = require("./elastic"),
+Elastic = require("../db/elastic"),
 Reading = require("./reading");
 
 var logger = new winston.Logger(),
@@ -16,7 +16,7 @@ var Item = function(name, url,type) {
 	} else {
 		this.url = "http://" + url; 
 	}
-	//Extracing item code form url. In principal this could create conflicts, but I think I'm ok...
+	//Extracing item code form url. In principal this could create conflicts, but I think I'm ok.
 	this.code = url.split('.').reverse()[1];
 };
 
@@ -42,24 +42,7 @@ Item.prototype.crawl = function(callback) {
 			var reading = new Reading(cleanResponse.title, cleanResponse.text.replace("\n"," "), 
 				cleanResponse.tags, queueItem.url, self.code, self.name, Date.now(), Date.now(), self.type);
 			reading.saveElastic();
-			
-			// var post_data = {
-			// 	title: cleanResponse.title,
-			// 	body: cleanResponse,
-			// 	item_code: self.code,
-			// 	url: queueItem.url,
-			// 	item_name: self.name,
-			// 	fetched_on: new Date().getTime(),
-			// 	hash: queueItem.url.hashCode(),
-			// 	type:self.type
-			// };
-			// elastic.exists(queueItem.url)
-			// 	.then(function(exists) {
-			// 		if (!exists) {
-			// 			logger.info("New page found, fetching:" + queueItem.url);
-			// 			elastic.post('/' + self.type + '/' + self.code ,JSON.stringify(post_data))
-			// 		}
-			// 	});
+			// reading.saveSQL();
 		}
 	},
 	function(queueItem) {
@@ -81,21 +64,10 @@ Item.prototype.crawl = function(callback) {
 	})
 	crawlerProcess.on("complete",function() {
 		logger.info("Search complete, total time="+ (new Date().getTime() - starttime));
-		// deferred.resolve();
-		// crawlerProcess.queue.freeze();
-		// crawlerProcess.wait();
-		// crawlerProcess.stop();
-		// crawlerProcess.on("complete",function(){});
 		callback();
 	})
 	logger.info('Starting crawl for ' + self.name + " " + self.url);
 	crawlerProcess.start();
-	// return deferred.promise;
 };
-
-// var item = new item('New York item', 'nyc','http://www1.nyc.gov');
-// item.crawl();
-
-
 
 module.exports=Item;

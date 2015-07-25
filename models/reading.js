@@ -4,11 +4,13 @@ Reading model
 Passed information by the crawler, saves itself to either an elasticsearch or SQL db.
 */
 
-var winston = require('winston');
-var logger = new winston.Logger();
-var unfluff = require('unfluff');
-var Elastic = require("./elastic");
-var elastic = new Elastic();
+var winston = require('winston'),
+logger = new winston.Logger(),
+unfluff = require('unfluff'),
+Elastic = require("../db/elastic"),
+elastic = new Elastic(),
+SQL = require("../db/sql"),
+sql = new SQL();
 logger.add(winston.transports.Console);
 
 var Reading = function(title, body,tags,url,item_code,item_name,crawled_on,created_on,type) {
@@ -51,15 +53,12 @@ Reading.prototype.saveElastic = function() {
 	})
 };
 
-Reading.prototype.saveSql = function() {
+Reading.prototype.saveSQL = function() {
 	var self=this;
 	var query = "INSERT INTO " + process.env.TABLE_NAME + ".READINGS (title, body, tags, url, item_code, item_name, crawled_on, created_on, type, hash) " + 
 	"VALUES ('" + self.title + "', '" + self.body + "', '" + self.tags + "', '" + self.url + "', '" + self.item_code + "', '" + self.item_name + "', '" + 
 	self.crawled_on + "', '" + self.created_on + "', '" + self.created_on + "', '" + self.type + "', '" + self.hash + "');";
-	console.log("Query: " + query);
-	//SQL.post(query);u
-
-	//TODO: Implement function to save to SQL;
+	sql.post(query);
 }
 
 module.exports=Reading;
