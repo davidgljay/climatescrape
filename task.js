@@ -2,7 +2,7 @@
 var express = require('express'),
 app = express(), 
 path = require('path'),
-Item = require('./models/item'),
+Site = require('./models/site'),
 Firebase = require('firebase'),
 async = require('async'),
 helper = require('./helper'),
@@ -11,7 +11,7 @@ logger = new winston.Logger(),
 db = new Firebase(process.env.FIREBASE_URL).ref();
 
 db.once('value', function(data) {
-	var items = [];
+	var sites = [];
 	var sitesToCrawl = {
 		'cities':data.child('cities').val(), 
 		'media':data.child('media').val(),
@@ -20,18 +20,18 @@ db.once('value', function(data) {
 	for (subset in sitesToCrawl) {
 		for (key in sitesToCrawl[subset]) {
 			var data = sitesToCrawl[subset][key];
-			items.push(new Item(data.name, data.url,subset));
+			sites.push(new Site(data.name, data.url,subset));
 		}
 	}
 
-	async.eachSeries(items, 
-		function(item, callback) {
-			logger.info("Starting: " + item.name + "item.url");
-			item.crawl(callback);
+	async.eachSeries(sites, 
+		function(site, callback) {
+			logger.info("Starting: " + site.name + " " + site.url);
+			site.crawl(callback);
 		},
 		function(err) {
 		if (err) {
-			logger.error("Error crawling cities");
+			logger.error("Error crawling sites");
 		} else {
 			logger.info("City crawling complete");
 			process.exit();

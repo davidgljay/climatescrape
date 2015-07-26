@@ -14,14 +14,14 @@ sql = new SQL(),
 esacpe = sql.connection.esacpe;
 logger.add(winston.transports.Console);
 
-var Reading = function(title, body,tags,url,item_code,item_name,crawled_on,created_on,type) {
+var Reading = function(title, body,tags,url,site_code,site_name,crawled_on,created_on,type) {
 	var self=this;
 	self.title=title;
 	self.body=body;
 	self.tags=tags;
 	self.url=url;
-	self.item_code=item_code;
-	self.item_name=item_name;
+	self.site_code=site_code;
+	self.site_name=site_name;
 	self.crawled_on=crawled_on;
 	self.created_on=created_on;
 	self.type=type;
@@ -32,7 +32,7 @@ var Reading = function(title, body,tags,url,item_code,item_name,crawled_on,creat
 
 Reading.prototype.exists = function() {
 	var self=this;
-	return elastic.check("/" + self.type + '/' + self.item_code + '/' + self.id).then(
+	return elastic.check("/" + self.type + '/' + self.site_code + '/' + self.id).then(
 		function(body) {
 			var result = JSON.parse(body);
 	        	//TODO: generate new ID in the event that there's a hash conflict.
@@ -47,7 +47,7 @@ Reading.prototype.saveElastic = function() {
 	self.exists().then(function(exists) {
 		if (!exists) {
 			logger.info("Saving new page:" + self.url);
-			elastic.post('/' + self.type + '/' + self.item_code + '/' + self.id , JSON.stringify(self));
+			elastic.post('/' + self.type + '/' + self.site_code + '/' + self.id , JSON.stringify(self));
 		} else {
 			logger.info("Page already exists in elastic DB:" + self.url);
 		}
@@ -56,8 +56,8 @@ Reading.prototype.saveElastic = function() {
 
 Reading.prototype.saveSQL = function() {
 	var self=this;
-	var query = "INSERT INTO " + process.env.TABLE_NAME + ".READINGS (title, body, tags, url, item_code, item_name, crawled_on, created_on, type, hash) " + 
-	"VALUES ('" + escape(self.title) + "', '" + escape(self.body) + "', '" + escape(self.tags) + "', '" + escape(self.url) + "', '" + escape(self.item_code) + "', '" + escape(self.item_name) + "', '" + 
+	var query = "INSERT INTO " + process.env.TABLE_NAME + ".READINGS (title, body, tags, url, site_code, site_name, crawled_on, created_on, type, hash) " + 
+	"VALUES ('" + escape(self.title) + "', '" + escape(self.body) + "', '" + escape(self.tags) + "', '" + escape(self.url) + "', '" + escape(self.site_code) + "', '" + escape(self.site_name) + "', '" + 
 	escape(self.crawled_on) + "', '" + escape(self.created_on) + "', '" + escape(self.created_on) + "', '" + escape(self.type) + "', '" + escape(self.hash) + "');";
 	sql.post(query);
 }

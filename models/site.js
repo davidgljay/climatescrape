@@ -8,7 +8,7 @@ var logger = new winston.Logger(),
 elastic = new Elastic();
 logger.add(winston.transports.Console);
 
-var Item = function(name, url,type) {
+var Site = function(name, url,type) {
 	this.name = name;
 	this.type = type;
 	if (url.substring(0,6)=="http://") {
@@ -16,13 +16,13 @@ var Item = function(name, url,type) {
 	} else {
 		this.url = "http://" + url; 
 	}
-	//Extracing item code form url. In principal this could create conflicts, but I think I'm ok.
+	//Extracing site code form url. In principal this could create conflicts, but I think I'm ok.
 	this.code = url.split('.').reverse()[1];
 };
 
 var starttime = new Date().getTime();
 
-Item.prototype.crawl = function(callback) {
+Site.prototype.crawl = function(callback) {
 	var self=this;
 	var deferred = new Deferred();
 	var Crawler = require("simplecrawler");
@@ -70,4 +70,4 @@ Item.prototype.crawl = function(callback) {
 	crawlerProcess.start();
 };
 
-module.exports=Item;
+module.exports=Site;
