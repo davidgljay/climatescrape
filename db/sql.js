@@ -2,40 +2,35 @@ var Deferred = require("promised-io/promise").Deferred,
 winston = require('winston'),
 request = require("http").request,
 logger = new winston.Logger(),
-async = require("async");
+async = require("async")
+mysql = require("mysql");
 
 var SQL = function() {
-	this.queue = async.queue(function (query, callback) {
-      
-	    var post_options = {
-        host: process.env.SQL_HOST,
-        port: process.env.SQL_PORT,
-        path: "/",
-        method: 'POST',
-        headers: {
-            'Content-Type': 'text/html',
-            'Content-Length': query.length
-        }
-    };
-    var post_req = request(post_options, function(res) {
-          res.on('error', function(err) {
-            logger.error("Error on exists SQL post request:" + err)
-          });
+  var self = this;
+    self.connection = mysql.createConnection({
+      host     : process.env.SQL_HOST,
+      port     : process.env.SQL_PORT,
+      user     : process.env.SQL_USER,
+      password : process.env.SQL_PWD,
+      database : process.env.SQL_DB
     });
-    post_req.write(query);
-    post_req.end(callback);
-  }, 40);
+
+    self.connection.connect(function(err) {
+      if (err) {
+        logger.error('error connecting: ' + err.stack);
+        return;
+      }
+     
+      logger.info('SQL connected as id ' + connection.threadId);
+    });
 };
 
 SQL.prototype.post = function(query) {
-  var callback = function(err) {
-    if (err) {
-      logger.error("Error in SQL async queue: " + err);
-    } else {
-      logger.info("SQL async queue complete.");
-    }
-  }
-  this.queue.push(query, callback);
+  var self = this;
+  self.connection.query(query, function(err, rows, fields) {
+    if (err) throw err;
+    logger.info('Got sql return: ', rows[0].solution);
+  });   
 }
 
 module.exports = SQL;

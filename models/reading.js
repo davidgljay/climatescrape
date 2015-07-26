@@ -10,7 +10,8 @@ unfluff = require('unfluff'),
 Elastic = require("../db/elastic"),
 elastic = new Elastic(),
 SQL = require("../db/sql"),
-sql = new SQL();
+sql = new SQL(),
+esacpe = sql.connection.esacpe;
 logger.add(winston.transports.Console);
 
 var Reading = function(title, body,tags,url,item_code,item_name,crawled_on,created_on,type) {
@@ -56,8 +57,8 @@ Reading.prototype.saveElastic = function() {
 Reading.prototype.saveSQL = function() {
 	var self=this;
 	var query = "INSERT INTO " + process.env.TABLE_NAME + ".READINGS (title, body, tags, url, item_code, item_name, crawled_on, created_on, type, hash) " + 
-	"VALUES ('" + self.title + "', '" + self.body + "', '" + self.tags + "', '" + self.url + "', '" + self.item_code + "', '" + self.item_name + "', '" + 
-	self.crawled_on + "', '" + self.created_on + "', '" + self.created_on + "', '" + self.type + "', '" + self.hash + "');";
+	"VALUES ('" + escape(self.title) + "', '" + escape(self.body) + "', '" + escape(self.tags) + "', '" + escape(self.url) + "', '" + escape(self.item_code) + "', '" + escape(self.item_name) + "', '" + 
+	escape(self.crawled_on) + "', '" + escape(self.created_on) + "', '" + escape(self.created_on) + "', '" + escape(self.type) + "', '" + escape(self.hash) + "');";
 	sql.post(query);
 }
 

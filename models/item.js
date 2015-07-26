@@ -42,7 +42,7 @@ Item.prototype.crawl = function(callback) {
 			var reading = new Reading(cleanResponse.title, cleanResponse.text.replace("\n"," "), 
 				cleanResponse.tags, queueItem.url, self.code, self.name, Date.now(), Date.now(), self.type);
 			reading.saveElastic();
-			// reading.saveSQL();
+			reading.saveSQL();
 		}
 	},
 	function(queueItem) {
