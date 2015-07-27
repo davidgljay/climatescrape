@@ -1,36 +1,38 @@
 var Deferred = require("promised-io/promise").Deferred,
 winston = require('winston'),
-request = require("http").request,
 logger = new winston.Logger(),
-async = require("async")
 mysql = require("mysql");
 
 var SQL = function() {
   var self = this;
-    self.connection = mysql.createConnection({
+  var connectionVars = {
       host     : process.env.SQL_HOST,
       port     : process.env.SQL_PORT,
       user     : process.env.SQL_USER,
       password : process.env.SQL_PWD,
-      database : process.env.SQL_DB
-    });
+      database : process.env.SQL_DB,
+      ssl      : "Amazon RDS"
+    };
 
-    self.connection.connect(function(err) {
-      if (err) {
-        logger.error('error connecting: ' + err.stack);
-        return;
-      }
-     
-      logger.info('SQL connected as id ' + connection.threadId);
-    });
+  self.connection = mysql.createConnection(connectionVars);
+
+  self.connection.connect(function(err) {
+    if (err) {
+      console.log('error connecting: ' + err.stack);
+      return;
+    }
+   
+    console.log('SQL connected as id ' + self.connection.threadId);
+  });
 };
 
 SQL.prototype.post = function(query) {
   var self = this;
   self.connection.query(query, function(err, rows, fields) {
     if (err) throw err;
-    logger.info('Got sql return: ', rows[0].solution);
   });   
 }
+
+var sql = new SQL();
 
 module.exports = SQL;

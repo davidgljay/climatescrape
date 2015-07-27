@@ -39,7 +39,7 @@ Site.prototype.crawl = function(callback) {
 		};
 		if (queueItem.stateData.contentType && queueItem.stateData.contentType.substring(0,9)=="text/html") {
 			var cleanResponse = unfluff(responseBuffer.toString('utf-8'),'en');
-			var reading = new Reading(cleanResponse.title, cleanResponse.text.replace("\n"," "), 
+			var reading = new Reading(cleanResponse.title, cleanResponse.text.replace("\n"," ").replace("\t","").replace("\r",""), 
 				cleanResponse.tags, queueItem.url, self.code, self.name, Date.now(), Date.now(), self.type);
 			reading.saveElastic();
 			reading.saveSQL();

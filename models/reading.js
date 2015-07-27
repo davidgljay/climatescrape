@@ -10,8 +10,7 @@ unfluff = require('unfluff'),
 Elastic = require("../db/elastic"),
 elastic = new Elastic(),
 SQL = require("../db/sql"),
-sql = new SQL(),
-esacpe = sql.connection.esacpe;
+sql = new SQL();
 logger.add(winston.transports.Console);
 
 var Reading = function(title, body,tags,url,site_code,site_name,crawled_on,created_on,type) {
@@ -26,7 +25,7 @@ var Reading = function(title, body,tags,url,site_code,site_name,crawled_on,creat
 	self.created_on=created_on;
 	self.type=type;
 	//Make a unique id from the body fo the page and that page's url. self will be used to detect whether there are duplicate pages.
-	self.id = (url + body).replace("\r","").replace("\n","").hashCode();
+	self.id = (url + body).replace("\r","").replace("\n","").replace("\t","").hashCode();
 };
 
 
@@ -56,10 +55,29 @@ Reading.prototype.saveElastic = function() {
 
 Reading.prototype.saveSQL = function() {
 	var self=this;
-	var query = "INSERT INTO " + process.env.TABLE_NAME + ".READINGS (title, body, tags, url, site_code, site_name, crawled_on, created_on, type, hash) " + 
-	"VALUES ('" + escape(self.title) + "', '" + escape(self.body) + "', '" + escape(self.tags) + "', '" + escape(self.url) + "', '" + escape(self.site_code) + "', '" + escape(self.site_name) + "', '" + 
-	escape(self.crawled_on) + "', '" + escape(self.created_on) + "', '" + escape(self.created_on) + "', '" + escape(self.type) + "', '" + escape(self.hash) + "');";
+	var query = "INSERT IGNORE INTO " + process.env.SQL_DB + ".READINGS (TITLE, BODY, TAGS, URL, SITE_CODE, SITE_NAME, CRAWLED_ON, CREATED_ON, TYPE, HASH) " + 
+	"VALUES (" + sql.connection.escape(self.title) + ", " + sql.connection.escape(self.body) + ", " + (self.tags.length>0 ? sql.connection.escape(self.tags):"NULL") + ", " + sql.connection.escape(self.url) + ", " + sql.connection.escape(self.site_code) + ", " + sql.connection.escape(self.site_name) + ", '" + 
+	new Date(self.crawled_on).toMysqlFormat() + "', '" + new Date(self.created_on).toMysqlFormat() + "', " + sql.connection.escape(self.type) + ", " + sql.connection.escape(self.id) + ");";
 	sql.post(query);
 }
+
+/**
+ Functions to package dates as SQL;
+ **/
+function twoDigits(d) {
+    if(0 <= d && d < 10) return "0" + d.toString();
+    if(-10 < d && d < 0) return "-0" + (-1*d).toString();
+    return d.toString();
+}
+
+/**
+ * …and then create the method to output the date string as desired.
+ * Some people hate using prototypes this way, but if you are going
+ * to apply this to more than one Date object, having it as a prototype
+ * makes sense.
+ **/
+Date.prototype.toMysqlFormat = function() {
+    return this.getUTCFullYear() + "-" + twoDigits(1 + this.getUTCMonth()) + "-" + twoDigits(this.getUTCDate()) + " " + twoDigits(this.getUTCHours()) + ":" + twoDigits(this.getUTCMinutes()) + ":" + twoDigits(this.getUTCSeconds());
+};
 
 module.exports=Reading;

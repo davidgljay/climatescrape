@@ -5,11 +5,6 @@ LABEL description = "A crawler for scanning city websites and sites about city p
 COPY ./ /home/cityscan
 EXPOSE 80
 WORKDIR /home/cityscan
-ENV ELASTIC_HOST =54.85.208.63
-ENV ELASTIC_PORT=9200
-ENV SQL_HOST =climatescrape.cibwdgfmijjb.us-east-1.rds.amazonaws.com
-ENV SQL_PORT = 3306
-ENV FIREBASE_URL =https://boiling-torch-581.firebaseIO.com/
 RUN [ "sh", "./setvars.sh" ]
 RUN ["npm", "install"]
 CMD node task
