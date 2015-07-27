@@ -4,6 +4,7 @@
   "description": "Test scraping application for c40",
   "main": "index.js",
   "scripts": {
+    "start":"node task",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

@@ -16,7 +16,7 @@ logger.add(winston.transports.Console);
 var Reading = function(title, body,tags,url,site_code,site_name,crawled_on,created_on,type) {
 	var self=this;
 	self.title=title;
-	self.body=body;
+	self.body=body.replace("\n","").replace("\t","");
 	self.tags=tags;
 	self.url=url;
 	self.site_code=site_code;
