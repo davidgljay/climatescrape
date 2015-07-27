@@ -33,6 +33,4 @@ SQL.prototype.post = function(query) {
   });   
 }
 
-var sql = new SQL();
-
 module.exports = SQL;
