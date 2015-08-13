@@ -29,7 +29,7 @@ var SQL = function() {
 SQL.prototype.post = function(query) {
   var self = this;
   self.connection.query(query, function(err, rows, fields) {
-    if (err) throw err;
+    if (err) logger.error(err);
   });   
 }
 

@@ -47,33 +47,33 @@ Elastic.prototype.post = function(path, data) {
   this.queue.push(task, callback);
 }
 
-Elastic.prototype.check = function (url) {
-  var deferred = new Deferred();
-  console.log("Checking: " + url);
-  var post_options = {
-    host: process.env.ELASTIC_HOST,
-    port: process.env.ELASTIC_PORT,
-    path: url,
-    method: 'GET'
-  };
-  var post_req = request(post_options, function(res) {
-    var body=''
-    res.on('data', function (chunk) {
-      body += chunk;
-    });
-    res.on('error', function(err) {
-      logger.error("Error on exists request:" + err)
-    });
-    res.on('end', function() {
-      if (res.statusCode==200 || res.statusCode == 404){
-        deferred.resolve(body);
-      } else {
-        logger.error('Check call returned status that is neither 200 nor 404:' + res.statusCode);
-        deferred.reject(res.statusCode + ":" + res.body);
-      }
-    })
-  }).end();
-  return deferred.promise;
-}
+// Elastic.prototype.check = function (url) {
+//   var deferred = new Deferred();
+//   console.log("Checking: " + url);
+//   var post_options = {
+//     host: process.env.ELASTIC_HOST,
+//     port: process.env.ELASTIC_PORT,
+//     path: url,
+//     method: 'GET'
+//   };
+//   var post_req = request(post_options, function(res) {
+//     var body=''
+//     res.on('data', function (chunk) {
+//       body += chunk;
+//     });
+//     res.on('error', function(err) {
+//       logger.error("Error on exists request:" + err)
+//     });
+//     res.on('end', function() {
+//       if (res.statusCode==200 || res.statusCode == 404){
+//         deferred.resolve(body);
+//       } else {
+//         logger.error('Check call returned status that is neither 200 nor 404:' + res.statusCode);
+//         deferred.reject(res.statusCode + ":" + res.body);
+//       }
+//     })
+//   }).end();
+//   return deferred.promise;
+// }
 
 module.exports = Elastic;

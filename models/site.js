@@ -1,5 +1,4 @@
-var Deferred = require("promised-io/promise").Deferred,
-winston = require('winston'),
+var winston = require('winston'),
 unfluff = require('unfluff'),
 Elastic = require("../db/elastic"),
 Reading = require("./reading");
@@ -24,19 +23,13 @@ var starttime = new Date().getTime();
 
 Site.prototype.crawl = function(callback) {
 	var self=this;
-	var deferred = new Deferred();
 	var Crawler = require("simplecrawler");
 	var crawlerProcess = new Crawler.crawl(self.url);
-	crawlerProcess.interval = 100;
+	crawlerProcess.setMaxListeners(45);
+	crawlerProcess.interval = 500;
 	crawlerProcess.maxResourceSize = 1000000;
 	crawlerProcess.scanSubdomains = true;
 	crawlerProcess.on("fetchcomplete", function(queueItem,responseBuffer, response){
-		var strip_options = {
-		    include_script : false,
-		    include_style : false,
-		    compact_whitespace : true,
-		  include_attributes : { 'alt': true }
-		};
 		if (queueItem.stateData.contentType && queueItem.stateData.contentType.substring(0,9)=="text/html") {
 			var cleanResponse = unfluff(responseBuffer.toString('utf-8'),'en');
 			var reading = new Reading(cleanResponse.title, cleanResponse.text.replace("\n"," ").replace("\t","").replace("\r",""), 

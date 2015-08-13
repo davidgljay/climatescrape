@@ -43,14 +43,7 @@ Reading.prototype.exists = function() {
 
 Reading.prototype.saveElastic = function() {
 	var self = this;
-	self.exists().then(function(exists) {
-		if (!exists) {
-			logger.info("Saving new page:" + self.url);
-			elastic.post('/' + self.type + '/' + self.site_code + '/' + self.id , JSON.stringify(self));
-		} else {
-			logger.info("Page already exists in elastic DB:" + self.url);
-		}
-	})
+	elastic.post('/' + self.type + '/' + self.site_code + '/' + self.id + "/_create" , JSON.stringify(self));
 };
 
 Reading.prototype.saveSQL = function() {
