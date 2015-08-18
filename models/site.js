@@ -36,6 +36,7 @@ Site.prototype.crawl = function(callback) {
 				cleanResponse.tags, queueItem.url, self.code, self.name, Date.now(), Date.now(), self.type);
 			reading.saveElastic();
 			reading.saveSQL();
+			logger.info('Finished saving ' + queueItem.url);
 		}
 	},
 	function(queueItem) {

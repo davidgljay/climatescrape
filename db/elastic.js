@@ -39,7 +39,7 @@ Elastic.prototype.post = function(path, data) {
   };
   var callback = function(err) {
     if (err) {
-      logger.error("Error in callback queue" + err);
+      console.log("Error in callback queue:" + err);
     } else {
       logger.info("Queue callback complete");
     }

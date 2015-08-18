@@ -8,26 +8,43 @@ async = require('async'),
 helper = require('./helper'),
 winston = require('winston'),
 logger = new winston.Logger(),
+_ = require('underscore'),
 db = new Firebase(process.env.FIREBASE_URL).ref();
 
 db.once('value', function(data) {
-	var sites = [];
-	var sitesToCrawl = {
-		'cities':data.child('cities').val(), 
-		'media':data.child('media').val(),
-		'publications':data.child('publications').val()
-	};
-	for (subset in sitesToCrawl) {
-		for (key in sitesToCrawl[subset]) {
-			var data = sitesToCrawl[subset][key];
-			sites.push(new Site(data.name, data.url,subset));
-		}
-	}
+	var sitesToCrawl = [];
 
-	async.eachSeries(sites, 
-		function(site, callback) {
+	//Set last_crawled to 0 if it's not yet set.
+	data.forEach(function(subset) {
+		subset.forEach(function(item) {
+			if (!item.hasChild('last_crawled')) {
+				console.log(item.val());
+				item.ref().update({last_crawled:0});
+			}
+		var siteInfo = item.val();
+		siteInfo.ref = item.ref();
+		siteInfo.subset = subset.key();
+		sitesToCrawl.push(siteInfo);
+		})
+	})
+
+	// Order sitesToCrawl by last crawl.
+	sitesToCrawl = _.sortBy(sitesToCrawl, function(site) {
+		return site.last_crawled;
+	})
+
+	async.eachSeries(sitesToCrawl, 	
+		function(siteInfo, callback) {
+			var site = new Site(siteInfo.name, siteInfo.url, siteInfo.subset);
 			logger.info("Starting: " + site.name + " " + site.url);
-			site.crawl(callback);
+
+			//Update last_crawled when crawl is complete.
+			var cb = function() {
+				siteInfo.ref.update({last_crawled:new Date().getTime()});
+				callback();
+			}
+
+			site.crawl(cb);
 		},
 		function(err) {
 		if (err) {

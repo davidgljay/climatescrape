@@ -48,8 +48,8 @@ Reading.prototype.saveElastic = function() {
 
 Reading.prototype.saveSQL = function() {
 	var self=this;
-	var query = "INSERT IGNORE INTO " + process.env.SQL_DB + ".READINGS (TITLE, BODY, TAGS, URL, SITE_CODE, SITE_NAME, CRAWLED_ON, CREATED_ON, TYPE, HASH) " + 
-	"VALUES (" + sql.connection.escape(self.title) + ", " + sql.connection.escape(self.body) + ", " + (self.tags.length>0 ? sql.connection.escape(self.tags):"NULL") + ", " + sql.connection.escape(self.url) + ", " + sql.connection.escape(self.site_code) + ", " + sql.connection.escape(self.site_name) + ", '" + 
+	var query = "INSERT IGNORE INTO " + process.env.SQL_DB + ".READINGS (TITLE, BODY, URL, SITE_CODE, SITE_NAME, CRAWLED_ON, CREATED_ON, TYPE, HASH) " + 
+	"VALUES (" + sql.connection.escape(self.title) + ", " + sql.connection.escape(self.body) + "," + sql.connection.escape(self.url) + ", " + sql.connection.escape(self.site_code) + ", " + sql.connection.escape(self.site_name) + ", '" + 
 	new Date(self.crawled_on).toMysqlFormat() + "', '" + new Date(self.created_on).toMysqlFormat() + "', " + sql.connection.escape(self.type) + ", " + sql.connection.escape(self.id) + ");";
 	sql.post(query);
 }
