@@ -1,7 +1,8 @@
 var winston = require('winston'),
 unfluff = require('unfluff'),
 Elastic = require("../db/elastic"),
-Reading = require("./reading");
+Reading = require("./reading"),
+Crawler = require("simplecrawler");
 
 var logger = new winston.Logger(),
 elastic = new Elastic();
@@ -23,7 +24,6 @@ var starttime = new Date().getTime();
 
 Site.prototype.crawl = function(callback) {
 	var self=this;
-	var Crawler = require("simplecrawler");
 	var crawlerProcess = new Crawler.crawl(self.url);
 	crawlerProcess.setMaxListeners(45);
 	crawlerProcess.interval = 500;
@@ -36,7 +36,7 @@ Site.prototype.crawl = function(callback) {
 				cleanResponse.tags, queueItem.url, self.code, self.name, Date.now(), Date.now(), self.type);
 			reading.saveElastic();
 			reading.saveSQL();
-			logger.info('Finished saving ' + queueItem.url);
+			logger.info('Saving ' + queueItem.url);
 		}
 	},
 	function(queueItem) {
@@ -58,6 +58,7 @@ Site.prototype.crawl = function(callback) {
 	})
 	crawlerProcess.on("complete",function() {
 		logger.info("Search complete, total time="+ (new Date().getTime() - starttime));
+		crawlerProcess.removeAllListeners();
 		callback();
 	})
 	logger.info('Starting crawl for ' + self.name + " " + self.url);
