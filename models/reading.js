@@ -4,14 +4,12 @@ Reading model
 Passed information by the crawler, saves itself to either an elasticsearch or SQL db.
 */
 
-var winston = require('winston'),
-logger = new winston.Logger(),
-unfluff = require('unfluff'),
+var unfluff = require('unfluff'),
 Elastic = require("../db/elastic"),
 elastic = new Elastic(),
 SQL = require("../db/sql"),
-sql = new SQL();
-logger.add(winston.transports.Console);
+sql = new SQL(),
+logger = require('../logger.js');
 
 var Reading = function(title, body,tags,url,site_code,site_name,crawled_on,created_on,type) {
 	var self=this;

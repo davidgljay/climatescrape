@@ -1,7 +1,7 @@
 var Deferred = require("promised-io/promise").Deferred,
 winston = require('winston'),
 request = require("http").request,
-logger = new winston.Logger(),
+logger = require('../logger.js'),
 async = require("async");
 
 //Todo: Implement filters in elasticsearch
@@ -32,16 +32,13 @@ var Elastic = function() {
 }
 
 Elastic.prototype.post = function(path, data) {
-  logger.info('Posting:' + path);
   var task = {
     path:path,
     data:data
   };
   var callback = function(err) {
     if (err) {
-      console.log("Error in callback queue:" + err);
-    } else {
-      logger.info("Queue callback complete");
+      logger.error("Error in callback queue:" + err);
     }
   }
   this.queue.push(task, callback);

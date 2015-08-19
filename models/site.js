@@ -1,12 +1,11 @@
-var winston = require('winston'),
-unfluff = require('unfluff'),
+var unfluff = require('unfluff'),
 Elastic = require("../db/elastic"),
 Reading = require("./reading"),
-Crawler = require("simplecrawler");
+Crawler = require("simplecrawler"),
+logger = require('../logger.js');
 
-var logger = new winston.Logger(),
-elastic = new Elastic();
-logger.add(winston.transports.Console);
+
+var elastic = new Elastic();
 
 var Site = function(name, url,type) {
 	this.name = name;
@@ -26,7 +25,7 @@ Site.prototype.crawl = function(callback) {
 	var self=this;
 	var crawlerProcess = new Crawler.crawl(self.url);
 	crawlerProcess.setMaxListeners(45);
-	crawlerProcess.interval = 500;
+	crawlerProcess.interv
 	crawlerProcess.maxResourceSize = 1000000;
 	crawlerProcess.scanSubdomains = true;
 	crawlerProcess.on("fetchcomplete", function(queueItem,responseBuffer, response){
@@ -36,7 +35,6 @@ Site.prototype.crawl = function(callback) {
 				cleanResponse.tags, queueItem.url, self.code, self.name, Date.now(), Date.now(), self.type);
 			reading.saveElastic();
 			reading.saveSQL();
-			logger.info('Saving ' + queueItem.url);
 		}
 	},
 	function(queueItem) {

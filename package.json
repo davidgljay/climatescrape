@@ -17,6 +17,7 @@
     "express": "^4.12.4",
     "promised-io":"^0.3.5",
     "winston":"^1.0.1",
+    "winston-papertrail":"^1.0.1",
     "htmlstrip-native": "^0.1.1",
     "simplecrawler":"^0.5.2",
     "simplecrawler-queue-mongo":"^0.1.8",

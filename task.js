@@ -6,8 +6,7 @@ Site = require('./models/site'),
 Firebase = require('firebase'),
 async = require('async'),
 helper = require('./helper'),
-winston = require('winston'),
-logger = new winston.Logger(),
+logger = require('./logger'),
 _ = require('underscore'),
 db = new Firebase(process.env.FIREBASE_URL).ref();
 
@@ -18,7 +17,6 @@ db.once('value', function(data) {
 	data.forEach(function(subset) {
 		subset.forEach(function(item) {
 			if (!item.hasChild('last_crawled')) {
-				console.log(item.val());
 				item.ref().update({last_crawled:0});
 			}
 		var siteInfo = item.val();

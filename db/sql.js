@@ -1,7 +1,8 @@
 var Deferred = require("promised-io/promise").Deferred,
 winston = require('winston'),
 logger = new winston.Logger(),
-mysql = require("mysql");
+mysql = require("mysql"),
+logger = require('../logger.js');
 
 var SQL = function() {
   var self = this;
@@ -18,11 +19,11 @@ var SQL = function() {
 
   self.connection.connect(function(err) {
     if (err) {
-      console.log('error connecting: ' + err.stack);
+      logger.error('error connecting: ' + err.stack);
       return;
     }
    
-    console.log('SQL connected as id ' + self.connection.threadId);
+    logger.info('SQL connected as id ' + self.connection.threadId);
   });
 };
 
@@ -30,8 +31,8 @@ SQL.prototype.post = function(query) {
   var self = this;
   self.connection.query(query, function(err, rows, fields) {
     if (err) {
-      console.log("Error in SQL query: " + err);
-      console.log("Query was:" + query);
+      logger.error("Error in SQL query: " + err);
+      logger.error("Query was:" + query);
     }
   });   
 }
