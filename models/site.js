@@ -8,6 +8,7 @@ logger = require('../logger.js');
 var elastic = new Elastic();
 
 var Site = function(name, url,type) {
+	console.log(name + ' ' + url);
 	this.name = name;
 	this.type = type;
 	if (url.substring(0,6)=="http://") {
@@ -20,6 +21,7 @@ var Site = function(name, url,type) {
 };
 
 var starttime = new Date().getTime();
+var counter =0;
 
 Site.prototype.crawl = function(callback) {
 	var self=this;
@@ -35,6 +37,11 @@ Site.prototype.crawl = function(callback) {
 				cleanResponse.tags, queueItem.url, self.code, self.name, Date.now(), Date.now(), self.type);
 			reading.saveElastic();
 			reading.saveSQL();
+			counter++;
+			if (counter==100) {
+				logger.info("Saving site :" + queueItem.url);
+				counter=0;
+			}
 		}
 	},
 	function(queueItem) {

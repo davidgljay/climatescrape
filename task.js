@@ -15,6 +15,11 @@ db.once('value', function(data) {
 
 	//Set last_crawled to 0 if it's not yet set.
 	data.forEach(function(subset) {
+		//Todo: restructure data in a better way
+		//For now, ignore the user table.
+		if (subset.key()=='users') {
+			return;
+		}
 		subset.forEach(function(item) {
 			if (!item.hasChild('last_crawled')) {
 				item.ref().update({last_crawled:0});
