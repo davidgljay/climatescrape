@@ -38,7 +38,8 @@ db.once('value', function(data) {
 
 	async.eachSeries(sitesToCrawl, 	
 		function(siteInfo, callback) {
-			var site = new Site(siteInfo.name, siteInfo.url, siteInfo.subset);
+			siteInfo.blacklist = siteInfo.blacklist || [];
+			var site = new Site(siteInfo.name, siteInfo.url, siteInfo.subset, siteInfo.blacklist);
 			logger.info("Starting: " + site.name + " " + site.url);
 
 			//Update last_crawled when crawl is complete.

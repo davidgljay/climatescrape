@@ -7,9 +7,10 @@ logger = require('../logger.js');
 
 var elastic = new Elastic();
 
-var Site = function(name, url,type) {
+var Site = function(name, url,type, blacklist) {
 	this.name = name;
 	this.type = type;
+	this.blacklist = blacklist;
 	if (url.substring(0,6)=="http://") {
 		this.url = url;
 	} else {
@@ -47,6 +48,12 @@ Site.prototype.crawl = function(callback) {
 		logger.error("Error fetching: " + queueItem.url);
 	});
 	crawlerProcess.addFetchCondition(function(parsedUrl) {
+		for (var i = self.blacklist.length - 1; i >= 0; i--) {
+			if (parsedUrl.path.indexOf(self.blacklist[i].url) > -1) {
+				logger.info("Found blacklisted URL, avoiding:" + parsedUrl.path);
+				return false;
+			}
+		};
 		return (
 			!parsedUrl.path.match(/\.js$/i) && 
 			!parsedUrl.path.match(/\.css$/i) &&
