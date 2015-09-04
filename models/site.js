@@ -50,7 +50,6 @@ Site.prototype.crawl = function(callback) {
 	crawlerProcess.addFetchCondition(function(parsedUrl) {
 		for (var i = self.blacklist.length - 1; i >= 0; i--) {
 			if (parsedUrl.path.indexOf(self.blacklist[i].url) > -1) {
-				logger.info("Found blacklisted URL, avoiding:" + parsedUrl.path);
 				return false;
 			}
 		};
