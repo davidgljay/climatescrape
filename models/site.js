@@ -8,7 +8,6 @@ logger = require('../logger.js');
 var elastic = new Elastic();
 
 var Site = function(name, url,type) {
-	console.log(name + ' ' + url);
 	this.name = name;
 	this.type = type;
 	if (url.substring(0,6)=="http://") {
