@@ -48,23 +48,7 @@ Site.prototype.crawl = function(callback) {
 		logger.error("Error fetching: " + queueItem.url);
 	});
 	crawlerProcess.addFetchCondition(function(parsedUrl) {
-		for (var i = self.blacklist.length - 1; i >= 0; i--) {
-			if (parsedUrl.path.indexOf(self.blacklist[i].url) > -1) {
-				return false;
-			}
-		};
-		return (
-			!parsedUrl.path.match(/\.js$/i) && 
-			!parsedUrl.path.match(/\.css$/i) &&
-			!parsedUrl.path.match(/\.png$/i) &&
-			!parsedUrl.path.match(/\.jpg$/i) &&
-			!parsedUrl.path.match(/\.bmp$/i) &&
-			!parsedUrl.path.match(/\.gif$/i) &&
-			!parsedUrl.path.match(/\.pdf$/i) &&
-			!parsedUrl.path.match(/\.mov$/i) &&
-			!parsedUrl.path.match(/\.avi$/i) &&
-			!parsedUrl.path.match(/\.ico$/i)
-			)
+		return self.checkUrl(parsedUrl);
 	})
 	crawlerProcess.on("complete",function() {
 		logger.info("Search complete, total time="+ (new Date().getTime() - starttime));
@@ -73,6 +57,27 @@ Site.prototype.crawl = function(callback) {
 	})
 	logger.info('Starting crawl for ' + self.name + " " + self.url);
 	crawlerProcess.start();
+};
+
+Site.prototype.checkUrl = function(parsedUrl) {
+	var self=this;
+	for (var i = self.blacklist.length - 1; i >= 0; i--) {
+		if (parsedUrl.path.indexOf(self.blacklist[i].url) > -1) {
+			return false;
+		}
+	};
+	return (
+		!parsedUrl.path.match(/\.js$/i) && 
+		!parsedUrl.path.match(/\.css$/i) &&
+		!parsedUrl.path.match(/\.png$/i) &&
+		!parsedUrl.path.match(/\.jpg$/i) &&
+		!parsedUrl.path.match(/\.bmp$/i) &&
+		!parsedUrl.path.match(/\.gif$/i) &&
+		!parsedUrl.path.match(/\.pdf$/i) &&
+		!parsedUrl.path.match(/\.mov$/i) &&
+		!parsedUrl.path.match(/\.avi$/i) &&
+		!parsedUrl.path.match(/\.ico$/i)
+		)
 };
 
 module.exports=Site;

@@ -24,6 +24,14 @@ var Reading = function(title, body,tags,url,site_code,site_name,crawled_on,creat
 	self.type=type;
 	//Make a unique id from the body fo the page and that page's url. self will be used to detect whether there are duplicate pages.
 	self.id = (url + body).replace("\r","").replace("\n","").replace("\t","").hashCode();
+
+	//Assign a firstDate if one exists.
+	var firstDate = self.getFirstDate();
+	if (firstDate) {
+		self.first_date = firstDate;
+	} else {
+		self.first_date = '';
+	}
 };
 
 
@@ -39,18 +47,42 @@ Reading.prototype.exists = function() {
 		})
 }
 
+/* 
+* Save to elastic search DB. 
+*/
 Reading.prototype.saveElastic = function() {
 	var self = this;
 	elastic.post('/' + self.type + '/' + self.site_code + '/' + self.id + "/_create" , JSON.stringify(self));
 };
 
+/* 
+* Save to SQL DB. 
+*/
 Reading.prototype.saveSQL = function() {
 	var self=this;
-	var query = "INSERT IGNORE INTO " + process.env.SQL_DB + ".READINGS (TITLE, BODY, URL, SITE_CODE, SITE_NAME, CRAWLED_ON, CREATED_ON, TYPE, HASH) " + 
+	var query = "INSERT IGNORE INTO " + process.env.SQL_DB + ".READINGS (TITLE, BODY, URL, SITE_CODE, SITE_NAME, CRAWLED_ON, CREATED_ON, FIRST_DATE, TYPE, HASH) " + 
 	"VALUES (" + sql.connection.escape(self.title) + ", " + sql.connection.escape(self.body) + "," + sql.connection.escape(self.url) + ", " + sql.connection.escape(self.site_code) + ", " + sql.connection.escape(self.site_name) + ", '" + 
-	new Date(self.crawled_on).toMysqlFormat() + "', '" + new Date(self.created_on).toMysqlFormat() + "', " + sql.connection.escape(self.type) + ", " + sql.connection.escape(self.id) + ");";
+	new Date(self.crawled_on).toMysqlFormat() + "', '" + new Date(self.created_on).toMysqlFormat() + "', '" + (self.first_date ? self.first_date.toMysqlFormat():'') + "', " + sql.connection.escape(self.type) + ", " + sql.connection.escape(self.id) + ");";
 	sql.post(query);
 }
+
+/*
+* Search for dates in body
+*/
+
+Reading.prototype.getFirstDate = function() {
+	var self = this,
+	datestring;
+	if (datestring = self.body.match(/[0-31]{1,2}\/[0-9]{1,2}\/[0-9]{4}/)) {
+		return new Date(datestring)
+	} else if (datestring = self.body.match(/((January)|(February)|(March)|(April)|(May)|(June)|(July)|(August)|(September)|(October)|(November)|(December)) [0-9]{1,2}, [0-9]{4}/i)) {
+		return new Date(datestring);
+	} else if (datestring= self.body.match(/((Jan)|(Feb)|(Mar)|(Apr)|(May)|(Jun)|(Jul)|(Aug)|(Sep)|(Sept)|(Oct)|(Nov)|(Dec)) [0-9]{1,2}, [0-9]{4}/i)) {
+		return new Date(datestring);
+	} else {
+		return false;
+	};
+};
 
 /**
  Functions to package dates as SQL;
@@ -70,5 +102,7 @@ function twoDigits(d) {
 Date.prototype.toMysqlFormat = function() {
     return this.getUTCFullYear() + "-" + twoDigits(1 + this.getUTCMonth()) + "-" + twoDigits(this.getUTCDate()) + " " + twoDigits(this.getUTCHours()) + ":" + twoDigits(this.getUTCMinutes()) + ":" + twoDigits(this.getUTCSeconds());
 };
+
+
 
 module.exports=Reading;
