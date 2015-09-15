@@ -2,7 +2,9 @@ var unfluff = require('unfluff'),
 Elastic = require("../db/elastic"),
 Reading = require("./reading"),
 Crawler = require("simplecrawler"),
-logger = require('../logger.js');
+logger = require('../logger.js'),
+mongoose = require('mongoose'),
+Queue = require("simplecrawler-queue-mongo");
 
 
 var elastic = new Elastic();
@@ -18,6 +20,9 @@ var Site = function(name, url,type, blacklist) {
 	}
 	//Extracing site code form url. In principal this could create conflicts, but I think I'm ok.
 	this.code = url.split('.').reverse()[1];
+	var mongoaddr = "mongodb://"+process.env.MONGODB_PORT_27017_TCP_ADDR+":"+process.env.MONGODB_PORT_27017_TCP_PORT;
+	mongoose.connect(mongoaddr);
+
 };
 
 var starttime = new Date().getTime();
@@ -26,10 +31,13 @@ var counter =0;
 Site.prototype.crawl = function(callback) {
 	var self=this;
 	var crawlerProcess = new Crawler.crawl(self.url);
-	crawlerProcess.setMaxListeners(45);
-	crawlerProcess.interv
+	crawlerProcess.setMaxListeners(10);
 	crawlerProcess.maxResourceSize = 1000000;
 	crawlerProcess.scanSubdomains = true;
+	crawlerProcess.queue=new Queue(
+		mongoose.connections[0],
+		crawlerProcess
+	);
 	crawlerProcess.on("fetchcomplete", function(queueItem,responseBuffer, response){
 		if (queueItem.stateData.contentType && queueItem.stateData.contentType.substring(0,9)=="text/html") {
 			var cleanResponse = unfluff(responseBuffer.toString('utf-8'),'en');
@@ -53,7 +61,7 @@ Site.prototype.crawl = function(callback) {
 	crawlerProcess.on("complete",function() {
 		logger.info("Search complete, total time="+ (new Date().getTime() - starttime));
 		crawlerProcess.removeAllListeners();
-		callback();
+		mongoose.disconnect(callback);
 	})
 	logger.info('Starting crawl for ' + self.name + " " + self.url);
 	crawlerProcess.start();
