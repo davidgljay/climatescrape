@@ -4,9 +4,6 @@ Reading = require("./reading"),
 Crawler = require("simplecrawler"),
 logger = require('../logger.js');
 
-
-var elastic = new Elastic();
-
 var Site = function(name, url,type, blacklist) {
 	this.name = name;
 	this.type = type;

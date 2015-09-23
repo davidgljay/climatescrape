@@ -1,6 +1,4 @@
-var Deferred = require("promised-io/promise").Deferred,
-winston = require('winston'),
-request = require("http").request,
+var request = require("http").request,
 logger = require('../logger.js'),
 async = require("async");
 

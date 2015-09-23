@@ -1,7 +1,4 @@
-var Deferred = require("promised-io/promise").Deferred,
-winston = require('winston'),
-logger = new winston.Logger(),
-mysql = require("mysql"),
+var mysql = require("mysql"),
 logger = require('../logger.js');
 
 var SQL = function() {
